@@ -16,7 +16,12 @@ def add_noise(symbols: np.ndarray, eb_no_db: float) -> np.ndarray:
     Es = 1
     Eb = Es / 2
     sigma = np.sqrt(Eb/(2*eb_no_linear))
-
+    noise_i =  np.random.normal(0, sigma, len(symbols))
+    noise_q =  np.random.normal(0, sigma, len(symbols))
+    noise = noise_i + 1j* noise_q
+    signal = symbols + noise
+    
+    return signal
 
 if __name__ == "__main__":
     test_bits = np.array([0, 0,  0, 1,  1, 0,  1, 1])
