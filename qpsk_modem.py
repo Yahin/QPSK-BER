@@ -8,9 +8,8 @@ def qpsk_modulate(bits: np.ndarray) -> np.ndarray:
     q_levels = 1 - 2 * q_bits
 
     s = (i_levels + 1j* q_levels)/np.sqrt(2) 
-    symbols = add_noise(s, 0)
     
-    return symbols
+    return s
 
 def add_noise(symbols: np.ndarray, eb_no_db: float) -> np.ndarray:
     eb_no_linear = 10**(eb_no_db/10)
@@ -40,9 +39,10 @@ def qpsk_demodulate(received_symbols: np.ndarray) -> np.ndarray:
 
 if __name__ == "__main__":
     #tx_bits = np.array([0, 1,  0, 1,  1, 0,  1, 1])
-    tx_bits = np.random.randint(0, 2, 100_000)
+    tx_bits = np.random.randint(0, 2, 1_000_000)
     symbols = qpsk_modulate(tx_bits)
-    rx_bits = qpsk_demodulate(symbols)
+    noisy_symbols = add_noise(symbols,10)
+    rx_bits = qpsk_demodulate(noisy_symbols)
     errors = np.sum(tx_bits != rx_bits)
     ber = errors / len(tx_bits)
     
