@@ -1,11 +1,12 @@
 import numpy as np
 
 def qpsk_modulate(bits: np.ndarray) -> np.ndarray:
+    bits = bits.astype(float)
     i_bits = bits[0::2]
     q_bits = bits[1::2]
 
-    i_levels = 1 - 2 * i_bits
-    q_levels = 1 - 2 * q_bits
+    i_levels = 1.0 - 2.0 * i_bits
+    q_levels = 1.0 - 2.0 * q_bits
 
     s = (i_levels + 1j* q_levels)/np.sqrt(2) 
     
@@ -13,8 +14,8 @@ def qpsk_modulate(bits: np.ndarray) -> np.ndarray:
 
 def add_noise(symbols: np.ndarray, eb_no_db: float) -> np.ndarray:
     eb_no_linear = 10**(eb_no_db/10)
-    Es = 1
-    Eb = Es / 2
+    Es = 1.0
+    Eb = Es / 2.0
     sigma = np.sqrt(Eb/(2*eb_no_linear))
     noise_i =  np.random.normal(0, sigma, len(symbols))
     noise_q =  np.random.normal(0, sigma, len(symbols))
