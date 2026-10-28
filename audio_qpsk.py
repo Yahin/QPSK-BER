@@ -4,11 +4,11 @@ from scipy.signal import correlate
 from qpsk_modem import qpsk_modulate,qpsk_demodulate
 
 Fs = 48000              # Audio sampling rate
-fc = 3000               # Carrier frequency (2 kHz tone)
+fc = 2000               # Carrier frequency (2 kHz tone)
 baud_rate = 200         # Baud rate for transmission
 sps = int(Fs/baud_rate)        # Samples per symbol 
 
-message = "Jesus will help \x00"
+message = "Hi \x00"
 byte_data = np.frombuffer(message.encode('utf-8'), dtype=np.uint8)
 tx_bits = np.unpackbits(byte_data)
 data_symbols = qpsk_modulate(tx_bits)
@@ -31,7 +31,7 @@ silence_back = np.zeros(int(1.2 * Fs))
 tx_full = np.concatenate([silence_front,tx_audio,silence_back])
 
 # Normalize volume to 70% to avoid clipping
-tx_signal = (tx_full/np.max(np.abs(tx_full))) * 0.7
+tx_signal = (tx_full/np.max(np.abs(tx_full))) * 0.25
 
 #sd.play(tx_signal,Fs)
 #sd.wait()

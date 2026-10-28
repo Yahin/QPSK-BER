@@ -1,3 +1,6 @@
 AI-Learning-Toolkit/
 __pycache__/
+.vscode/
 QPSK_BER_LinkBudget_Roadmap.md
+Results.md
+test_vectors.h
