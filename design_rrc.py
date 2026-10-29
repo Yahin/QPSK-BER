@@ -20,7 +20,7 @@ def fir_q15_bit_accurate(x_q15, h_q15):
         y_q15[n] = np.int16(acc_sat)
     return y_q15
 
-def export_c_header(h_q15, x_q15, y_q15, filename="test_vectors.h"):
+def export_c_header(h_q15, x_q15, y_q15, filename="C/test_vectors.h"):
     """Exports Python golden vectors into a C header file."""
     with open(filename, "w") as f:
         f.write("#ifndef TEST_VECTORS_H\n#define TEST_VECTORS_H\n\n")
