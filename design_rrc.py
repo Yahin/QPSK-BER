@@ -43,43 +43,50 @@ def export_c_header(h_q15, x_q15, y_q15, filename="C/test_vectors.h"):
     print(f"Successfully exported {filename}!")
 
 
-N = 31          # filter taps
-sps = 4         # samples per symbol
-alpha = 0.35    # decay rate
+def rrc_taps(N=31, sps=4, alpha=0.35):
+    """Generates an N-tap Root-Raised Cosine filter impulse response."""
+    indices = np.arange(-(N // 2), (N // 2) + 1)
+    t = indices / sps
+    h = np.zeros(len(t))
 
-indices = np.arange(-(N // 2), (N // 2) + 1)
-t = indices / sps
-h = np.zeros(len(t))
+    for i, t_val in enumerate(t):
+        if abs(t_val) < 1e-8:
+            h[i] = 1.0 - alpha + (4 * alpha / np.pi)
+        elif abs(abs(4 * alpha * t_val) - 1.0) < 1e-8:
+            h[i] = (alpha / np.sqrt(2)) * (
+                (1 + 2 / np.pi) * np.sin(np.pi / (4 * alpha)) +
+                (1 - 2 / np.pi) * np.cos(np.pi / (4 * alpha))
+            )
+        else:
+            num = np.sin(np.pi * t_val * (1 - alpha)) + 4 * alpha * t_val * np.cos(np.pi * t_val * (1 + alpha))
+            den = np.pi * t_val * (1 - (4 * alpha * t_val) ** 2)
+            h[i] = num / den
 
-for i, t_val in enumerate(t):
-    if abs(t_val) < 1e-8:
-        h[i] = 1.0 - alpha* (4 * alpha / np.pi)
-    elif abs(abs(4 * alpha * t_val) - 1.0) < 1e-8:
-        h[i] = (alpha / np.sqrt(2)) * (
-            (1 + 2 / np.pi) * np.sin(np.pi / (4 * alpha)) +
-            (1 - 2 / np.pi) * np.cos(np.pi / (4 * alpha))
-        )
-    else:
-        num = np.sin(np.pi * t_val * (1 - alpha)) + 4 * alpha * t_val * np.cos(np.pi * t_val * (1 + alpha))
-        den = np.pi * t_val * (1 - (4 * alpha * t_val) ** 2)
-        h[i] = num / den
-        
-h = h / np.sqrt(np.sum(h ** 2))
-h_q15 = np.round(h * ((2**15-1))).astype(np.int16)
-print(f"Float peak value: {np.max(h):.4f}")
-print(f"Q15 peak value (center tap): {np.max(h_q15)}")
-print(f"Float energy sum(h^2): {np.sum(h**2):.4f}")
+    # Energy normalization
+    h = h / np.sqrt(np.sum(h ** 2))
+    return h
 
-symbols = np.array([1, -1, 1, 1, -1, -1, 1, -1, 1, 1, -1, 1, -1, -1, 1, 1], dtype=float) / np.sqrt(2)
-upsampled_float = np.zeros(len(symbols) * sps, dtype=float)
-upsampled_float[::sps] = symbols
+if __name__ == "__main__":
+    N=31
+    sps=4
+    alpha=0.35
+    
+    h = rrc_taps(N, sps, alpha)
+    h_q15 = np.round(h * ((2**15-1))).astype(np.int16)
+    print(f"Float peak value: {np.max(h):.4f}")
+    print(f"Q15 peak value (center tap): {np.max(h_q15)}")
+    print(f"Float energy sum(h^2): {np.sum(h**2):.4f}")
 
-x_q15 = np.round(upsampled_float * ((2**15-1))).astype(np.int16)
+    symbols = np.array([1, -1, 1, 1, -1, -1, 1, -1, 1, 1, -1, 1, -1, -1, 1, 1], dtype=float) / np.sqrt(2)
+    upsampled_float = np.zeros(len(symbols) * sps, dtype=float)
+    upsampled_float[::sps] = symbols
 
-y_q15 = fir_q15_bit_accurate(x_q15, h_q15)
+    x_q15 = np.round(upsampled_float * ((2**15-1))).astype(np.int16)
 
-y_float = np.convolve(upsampled_float, h, mode='full')[:len(upsampled_float)]
-y_float_scaled = np.round(y_float * ((2**15-1)))
-diff_lsb = np.abs(y_q15 - y_float_scaled)
-print(f"Max error between Float and Q15: {np.max(diff_lsb):.1f} LSBs")
-export_c_header(h_q15, x_q15, y_q15)
+    y_q15 = fir_q15_bit_accurate(x_q15, h_q15)
+
+    y_float = np.convolve(upsampled_float, h, mode='full')[:len(upsampled_float)]
+    y_float_scaled = np.round(y_float * ((2**15-1)))
+    diff_lsb = np.abs(y_q15 - y_float_scaled)
+    print(f"Max error between Float and Q15: {np.max(diff_lsb):.1f} LSBs")
+    export_c_header(h_q15, x_q15, y_q15)

@@ -12,7 +12,7 @@ def qpsk_modulate(bits: np.ndarray) -> np.ndarray:
     
     return s
 
-def add_noise(symbols: np.ndarray, eb_no_db: float) -> np.ndarray:
+def add_noise(symbols: np.ndarray, eb_no_db: float= 10) -> np.ndarray:
     eb_no_linear = 10**(eb_no_db/10)
     Es = 1.0
     Eb = Es / 2.0
