@@ -8,6 +8,7 @@ sps = 4           # Samples per symbol
 N = 31            # RRC Filter order (taps)
 alpha = 0.35      # Roll-off factor
 num_bits = 1000   # 1000 bits = 500 QPSK symbols
+group_delay = N-1
 
 # 1. Generate RRC filter taps
 h = rrc_taps(N=N, sps=sps, alpha=alpha)
@@ -16,13 +17,13 @@ h = rrc_taps(N=N, sps=sps, alpha=alpha)
 tx_bits = np.random.randint(0, 2, num_bits)
 symbols = qpsk_modulate(tx_bits)
 upsampled = np.zeros(len(symbols)*sps, dtype=complex)
-upsampled[::4] = symbols
+upsampled[::sps] = symbols
 
 tx_waveform = np.convolve(upsampled, h, mode='full')
 tx_noisy = add_noise(tx_waveform,10)
 
 rx_matched = np.convolve(tx_noisy, h, mode='full')
-sample_indices = 30 + np.arange(len(symbols)) * sps
+sample_indices = group_delay + np.arange(len(symbols)) * sps
 recovered_symbols = rx_matched[sample_indices]
 
 rx_bits = qpsk_demodulate(recovered_symbols)

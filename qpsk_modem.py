@@ -1,6 +1,22 @@
 import numpy as np
 
 def qpsk_modulate(bits: np.ndarray) -> np.ndarray:
+    """
+    Modulates a binary bitstream into Gray-coded QPSK complex symbols (Es = 1.0).
+    Bit-to-Quadrant Gray Mapping:
+      (b0, b1) = (I_bit, Q_bit) where bit 0 -> +1/sqrt(2), bit 1 -> -1/sqrt(2)
+      
+      Quadrant 1 (b0=0, b1=0): (+1 + 1j) / sqrt(2)
+      Quadrant 2 (b0=1, b1=0): (-1 + 1j) / sqrt(2)
+      Quadrant 3 (b0=1, b1=1): (-1 - 1j) / sqrt(2)
+      Quadrant 4 (b0=0, b1=1): (+1 - 1j) / sqrt(2)
+      
+    Adjacent quadrants differ by exactly 1 bit (Gray coded), minimizing bit errors
+    when nearest-neighbor symbol decision errors occur.
+    """
+    if len(bits) % 2 != 0:
+        raise ValueError("Input bits array length must be even for QPSK.")
+    
     bits = bits.astype(float)
     i_bits = bits[0::2]
     q_bits = bits[1::2]
@@ -25,6 +41,13 @@ def add_noise(symbols: np.ndarray, eb_no_db: float= 10) -> np.ndarray:
     return signal
 
 def qpsk_demodulate(received_symbols: np.ndarray) -> np.ndarray:
+    """
+    Demodulates noisy QPSK symbols using Maximum Likelihood (ML) sign slicing.
+    Decision Boundary:
+      real >= 0 -> I_bit = 0,  real < 0 -> I_bit = 1
+      imag >= 0 -> Q_bit = 0,  imag < 0 -> Q_bit = 1
+    Reconstitutes the serial bitstream: [I0, Q0, I1, Q1, ...].
+    """
     real_part = np.real(received_symbols)
     imag_part = np.imag(received_symbols)
 

@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 from scipy.special import erfc
 from qpsk_modem import qpsk_modulate,add_noise, qpsk_demodulate
 
+
+np.random.seed(42)
 eb_no_dbs = np.arange(0, 11, 1)
 # bits to simulate = 100/ expected BER
 num_bits = 1_000_000  # 1 million bits gives reliable errors up to 10 dB!
@@ -14,7 +16,7 @@ for eb_no in eb_no_dbs:
     noisy_symbols = add_noise(symbols,eb_no)
     rx_bits = qpsk_demodulate(noisy_symbols)
     errors = np.sum(tx_bits != rx_bits)
-    ber = errors / len(tx_bits)
+    ber = max(errors / len(tx_bits), 0.5 / len(tx_bits))
     ber_simulated.append(ber)
 
 eb_no_linear = 10 ** (eb_no_dbs / 10)

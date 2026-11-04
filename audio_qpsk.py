@@ -56,6 +56,9 @@ peak_idx = np.argmax(np.abs(corr))
 phase_offset = np.angle(corr[peak_idx])
 
 start_sample = peak_idx + len(preamble_ref) + (sps // 2)
+if start_sample >= len(rx_matched) - sps:
+    raise RuntimeError("Preamble not detected or signal truncated.")
+
 sample_indices = np.arange(start_sample, len(rx_matched) - sps, sps)
 rx_data_symbols = rx_matched[sample_indices]*np.exp(-1j*phase_offset)
 

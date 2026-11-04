@@ -14,7 +14,10 @@ typedef struct {
     const q15_t *pCoeffs;   // Pointer to our RRC taps array
 } arm_fir_instance_q15;
 
-void arm_fir_init_q15(
+/* Precondition: Caller must allocate at least (numTaps + blockSize - 1) 
+   q15_t words for pState to prevent buffer overflow during convolution. */
+
+static void arm_fir_init_q15(
     arm_fir_instance_q15 * S,
     uint16_t numTaps,
     const q15_t * pCoeffs,
@@ -29,7 +32,7 @@ void arm_fir_init_q15(
     memset(pState, 0, (numTaps + blockSize - 1) * sizeof(q15_t));
 }
 
-void arm_fir_q15(
+static void arm_fir_q15(
     const arm_fir_instance_q15 * S,  
     const q15_t * pSrc,              
     q15_t * pDst,                    
@@ -78,6 +81,7 @@ void arm_fir_q15(
 
 int main(){
     arm_fir_instance_q15 S;
+    // State memory allocated according to CMSIS-DSP FIR contract:
     q15_t state[NUM_TAPS + BLOCK_SIZE - 1];
     q15_t output_c[BLOCK_SIZE];
     // 1. Initialize the filter
@@ -87,7 +91,7 @@ int main(){
     // 3. Quantitative Verification against Python Golden Model
     int max_err = 0;
     for (int i = 0; i < BLOCK_SIZE; i++) {
-        int diff = abs(output_c[i] - expected_output_q15[i]);
+        int diff = abs((int32_t)output_c[i] - (int32_t)expected_output_q15[i]);
         if (diff > max_err) {
             max_err = diff;
         }
@@ -99,9 +103,11 @@ int main(){
     printf("Maximum Difference vs Python Golden Model: %d LSB(s)\n", max_err);
     if (max_err <= 1) {
         printf("VERIFICATION STATUS: >>> PASSED <<< (Bit-Accurate!)\n");
+        printf("===================================================\n");
+        return EXIT_SUCCESS;
     } else {
         printf("VERIFICATION STATUS: >>> FAILED <<<\n");
+        printf("===================================================\n");
+        return EXIT_FAILURE;
     }
-    printf("===================================================\n");
-    return 0;
 }

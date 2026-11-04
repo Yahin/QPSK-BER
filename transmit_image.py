@@ -26,7 +26,7 @@ def create_synthetic_satellite_image(size=120):
 
 if __name__ == "__main__":
     img = Image.open("Sage.png").convert("RGB") # change the image here
-    img.resize((256,256))
+    img = img.resize((256,256))
     original_img = np.array(img,dtype=np.uint8)
     #original_img = create_synthetic_satellite_image()
     # H,W = original_img.shape
